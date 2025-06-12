@@ -1,5 +1,0 @@
-Tool,Date,Total Issues,Critical,High,Medium,Low
-Checkov,2025-06-12,12,3,4,3,2
-Trivy,2025-06-12,26,5,10,7,4
-Gitleaks,2025-06-12,3,1,1,1,0
-AI Best Practices,2025-06-12,5,2,1,1,1
