@@ -1,0 +1,111 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_TAG = "${env.BUILD_ID}"
+
+        // AWS credentials
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+
+        // Azure ACR credentials
+        ACR_USERNAME = credentials('acr-username')
+        ACR_PASSWORD = credentials('acr-password')
+
+        // GCP GCR credentials
+        GCR_KEY = credentials('gcr-key-json')
+
+        // Registry Settings
+        ECR_REPO = 'your-account-id.dkr.ecr.us-east-1.amazonaws.com/emmanuel-services'
+        ACR_REGISTRY = 'youracr.azurecr.io'
+        ACR_REPO = 'emmanuel-services'
+        GCP_PROJECT_ID = 'your-gcp-project-id'
+        GCR_REPO = 'emmanuel-services'
+    }
+
+    stages {
+        stage('Install Security Tools') {
+            steps {
+                sh '''
+                pip install checkov
+                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+                curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_$(uname -s)_x64.tar.gz | tar -xz -C /usr/local/bin gitleaks
+                '''
+            }
+        }
+
+        stage('Scan Infrastructure as Code (Checkov)') {
+            steps {
+                sh '''
+                checkov -d terraform --output json > checkov-report.json || true
+                '''
+            }
+        }
+
+        stage('Detect Secrets (Gitleaks)') {
+            steps {
+                sh '''
+                gitleaks detect --source . --report-format sarif --report-path gitleaks-report.sarif || true
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                docker build -t emmanuel-services:$IMAGE_TAG .
+                '''
+            }
+        }
+
+        stage('Scan Docker Image (Trivy)') {
+            steps {
+                sh '''
+                trivy image --severity CRITICAL,HIGH --format table --output trivy-scan.txt emmanuel-services:$IMAGE_TAG || true
+                '''
+            }
+        }
+
+        stage('Deploy to AWS ECR') {
+            steps {
+                sh '''
+                aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REPO
+                docker tag emmanuel-services:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
+                docker push $ECR_REPO:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Deploy to Azure ACR') {
+            steps {
+                sh '''
+                echo $ACR_PASSWORD | docker login $ACR_REGISTRY -u $ACR_USERNAME --password-stdin
+                docker tag emmanuel-services:$IMAGE_TAG $ACR_REGISTRY/$ACR_REPO:$IMAGE_TAG
+                docker push $ACR_REGISTRY/$ACR_REPO:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Deploy to Google GCR') {
+            steps {
+                script {
+                    writeFile file: 'key.json', text: GCR_KEY
+                    sh '''
+                    gcloud auth activate-service-account --key-file=key.json
+                    gcloud auth configure-docker
+                    docker tag emmanuel-services:$IMAGE_TAG gcr.io/$GCP_PROJECT_ID/$GCR_REPO:$IMAGE_TAG
+                    docker push gcr.io/$GCP_PROJECT_ID/$GCR_REPO:$IMAGE_TAG
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/*.{json,txt,sarif}', allowEmptyArchive: true
+        }
+    }
+}

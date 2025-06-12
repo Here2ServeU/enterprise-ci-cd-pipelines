@@ -1,29 +1,32 @@
-# Enterprise CI/CD Pipelines
+# DevSecOps Project: Build Secure CI/CD Pipelines with AI & Multi-Cloud Deployment
 
 ## Overview
 
-This project demonstrates real-world Continuous Integration and Continuous Delivery (CI/CD) pipelines using GitHub Actions, GitLab CI, and Jenkins. It automates infrastructure deployment, container builds, security scans, and application delivery using modern DevOps practices.
+This project is your all-in-one starter kit to learn and apply **DevOps**, **Site Reliability Engineering (SRE)**, and **DevSecOps** using modern automation practices and AI. No prior experience required — just follow the steps and build real-world infrastructure, pipelines, and secure deployments.
+
+By the end, you will:
+
+- Build and containerize a Python Flask web application
+- Use **virtual environments** to isolate dependencies
+- Scan infrastructure and code using **Checkov**, **Trivy**, and **Gitleaks**
+- Automate deployments via **GitHub Actions**, **GitLab CI**, and **Jenkins**
+- Deploy to cloud registries: AWS ECR, Azure ACR, and Google GCR
+- Use AI to analyze and recommend remediations from scan results
 
 ---
 
-## Key Features
+## Prerequisites
 
-- Multi-environment CI/CD pipelines (dev, staging, prod)
-- Integrated security scans with Checkov, Trivy, and Gitleaks
-- Support for Terraform and Docker
-- Manual approval workflows for production
-- Works with GitHub Actions, GitLab CI, and Jenkins
+Before getting started, make sure the following tools are installed on your machine:
 
----
-
-## Stack
-
-- GitHub Actions
-- GitLab CI/CD
-- Jenkins
-- Terraform
-- Docker
-- Trivy, Checkov, Gitleaks
+- [Python 3.10+](https://www.python.org/)
+- [Docker](https://www.docker.com/)
+- [Git](https://git-scm.com/)
+- [Terraform](https://developer.hashicorp.com/terraform)
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
+- Optional: Jenkins (for local CI/CD)
 
 ---
 
@@ -31,103 +34,143 @@ This project demonstrates real-world Continuous Integration and Continuous Deliv
 
 ```
 .
-├── .github/workflows/deploy.yml     # GitHub Actions pipeline
-├── .gitlab-ci.yml                   # GitLab CI/CD config
-├── Jenkinsfile                      # Jenkins pipeline
-├── Dockerfile                       # Sample Docker image
-├── terraform/                       # Infrastructure code
-│   └── main.tf
-└── trivy-scan.sh                    # Security scanning script
+├── emmanuel-services/
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── templates/index.html
+│
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── terraform.tfvars
+│   └── outputs.tf
+│
+├── .github/workflows/deploy.yml
+├── .gitlab-ci.yml
+├── jenkins/Jenkinsfile
+├── scripts/
+│   ├── trivy-scan.sh
+│   ├── create_registries.sh
+│   └── ai_analyzer.py
+└── README.md
 ```
 
 ---
 
-## Step-by-Step Guide
+## Getting Started with Python Virtual Environment
 
-### Step 1: Clone the Repository
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Here2ServeU/enterprise-ci-cd-pipelines.git
-cd enterprise-ci-cd-pipelines
+git clone https://github.com/Here2ServeU/portfolio-sre-devops.git
+cd portfolio-sre-devops/emmanuel-services
 ```
 
----
-
-### Step 2: Configure Your CI/CD Platform
-
-**GitHub Actions**
-- Ensure repository is public or GitHub Actions is enabled.
-- Push to the `main` branch to trigger `deploy.yml`.
-
-**GitLab CI**
-- GitLab Runner must be configured.
-- Modify `.gitlab-ci.yml` to match your environment.
-
-**Jenkins**
-- Create a pipeline job and point to this repo.
-- Ensure Terraform and Docker are installed on the agent.
-
----
-
-### Step 3: Edit Terraform Configuration
-
-```hcl
-# terraform/main.tf
-resource "null_resource" "example" {
-  provisioner "local-exec" {
-    command = "echo Hello CI/CD"
-  }
-}
-```
-
----
-
-### Step 4: Run Security Scans
+### 2. Set Up Virtual Environment
 
 ```bash
-chmod +x trivy-scan.sh
-./trivy-scan.sh
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 3. Run Flask App Locally
+
+```bash
+python app.py
+```
+
+Access your app at: [http://localhost:5050](http://localhost:5050)
+
+---
+
+## Deploying Infrastructure with Terraform
+
+```bash
+cd ../terraform
+terraform init
+terraform plan
+terraform apply
 ```
 
 ---
 
-## Usage
+## Run Security Scans
 
-Use this project to demonstrate CI/CD automation in job interviews or to build real delivery pipelines for your infrastructure and applications. Easily extend with Kubernetes, Helm, or ArgoCD integrations.
+```bash
+chmod +x ../scripts/trivy-scan.sh
+../scripts/trivy-scan.sh
+
+# AI-enhanced analysis
+python ../scripts/ai_analyzer.py
+```
+
+---
+
+## Use CI/CD Pipelines
+
+### GitHub Actions
+- Uncomment the following lines on .github/workflows/deploy.yml
+```yml
+#name: DevSecOps CI/CD Pipeline
+
+#on:
+#  push:
+#    branches: [main]
+#  pull_request:
+```
+- Push to `main` triggers `.github/workflows/deploy.yml`
+
+### GitLab CI
+
+On push, `.gitlab-ci.yml` runs and deploys
+
+### Jenkins
+
+Connect Jenkins to your repo and use `jenkins/Jenkinsfile`
+
+---
+
+## Deploy to Cloud Registries
+
+You can auto-create the container registries via:
+
+```bash
+./scripts/create_registries.sh
+```
+
+Then your pipelines push to:
+- **AWS ECR**
+- **Azure ACR**
+- **Google GCR**
+
+---
+
+## Built-in Security Tools
+
+| Tool     | Use Case                        |
+|----------|----------------------------------|
+| Checkov  | Terraform IaC misconfigs         |
+| Trivy    | Docker image vulnerabilities     |
+| Gitleaks | Secrets exposed in code          |
+| OpenAI   | Summarize & suggest remediations |
 
 ---
 
 ## Author
 
-By Emmanuel Naweji, 2025  
-**Cloud | DevOps | SRE | FinOps | AI Engineer**  
-Helping businesses modernize infrastructure and guiding engineers into top 1% career paths through real-world projects and automation-first thinking.
-
-![AWS Certified](https://img.shields.io/badge/AWS-Certified-blue?logo=amazonaws)
-![Azure Solutions Architect](https://img.shields.io/badge/Azure-Solutions%20Architect-0078D4?logo=microsoftazure)
-![CKA](https://img.shields.io/badge/Kubernetes-CKA-blue?logo=kubernetes)
-![Terraform](https://img.shields.io/badge/IaC-Terraform-623CE4?logo=terraform)
-![GitHub Actions](https://img.shields.io/badge/CI/CD-GitHub%20Actions-blue?logo=githubactions)
-![GitLab CI](https://img.shields.io/badge/CI/CD-GitLab%20CI-FC6D26?logo=gitlab)
-![Jenkins](https://img.shields.io/badge/CI/CD-Jenkins-D24939?logo=jenkins)
-![Ansible](https://img.shields.io/badge/Automation-Ansible-red?logo=ansible)
-![ArgoCD](https://img.shields.io/badge/GitOps-ArgoCD-orange?logo=argo)
-![VMware](https://img.shields.io/badge/Virtualization-VMware-607078?logo=vmware)
-![Linux](https://img.shields.io/badge/OS-Linux-black?logo=linux)
-![FinOps](https://img.shields.io/badge/FinOps-Cost%20Optimization-green?logo=money)
-![OpenAI](https://img.shields.io/badge/AI-OpenAI-ff9900?logo=openai)
-
----
-
-## Connect with Me
+**By Emmanuel Naweji, 2025**  
+Cloud | DevOps | SRE | FinOps | AI Engineer
 
 - [LinkedIn](https://www.linkedin.com/in/ready2assist/)
 - [GitHub](https://github.com/Here2ServeU)
-- [Medium](https://medium.com/@here2serveyou)
+- [Free 1:1 Consultation](https://bit.ly/letus-meet)
 
 ---
 
-## Book a Free Consultation
+## License
 
-Want help building enterprise-grade pipelines or optimizing your CI/CD workflows?  
-👉 [Schedule a free 1:1 consultation](https://bit.ly/letus-meet)
+MIT License - free to use and modify for learning or production.
+

@@ -1,24 +1,64 @@
+# ========================================
+# GitLab CI/CD: .gitlab-ci.yml
+# ========================================
+
 stages:
-  - validate
-  - plan
-  - apply
+  - scan
+  - build
+  - deploy
 
 variables:
-  TF_ROOT: "."
+  IMAGE_TAG: "$CI_PIPELINE_ID"
+  ECR_REPO: "your-account-id.dkr.ecr.us-east-1.amazonaws.com/emmanuel-services"
+  ACR_REGISTRY: "youracr.azurecr.io"
+  ACR_REPO: "emmanuel-services"
+  GCP_PROJECT_ID: "your-gcp-project-id"
+  GCR_REPO: "emmanuel-services"
 
-validate:
-  stage: validate
+scan:
+  stage: scan
+  image: python:3.10-slim
   script:
-    - terraform init
-    - terraform validate
+    - pip install checkov
+    - apt-get update && apt-get install -y curl
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+    - curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_Linux_x86_64.tar.gz | tar -xz -C /usr/local/bin gitleaks
+    - checkov -d terraform --output json > checkov-report.json || true
+    - gitleaks detect --source . --report-format sarif --report-path gitleaks-report.sarif || true
+    - trivy image --severity CRITICAL,HIGH --format table --output trivy-scan.txt emmanuel-services:$IMAGE_TAG || true
+  artifacts:
+    paths:
+      - checkov-report.json
+      - gitleaks-report.sarif
+      - trivy-scan.txt
 
-plan:
-  stage: plan
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - terraform plan
+    - docker build -t emmanuel-services:$IMAGE_TAG .
+    - docker save emmanuel-services:$IMAGE_TAG > image.tar
+  artifacts:
+    paths:
+      - image.tar
 
-apply:
-  stage: apply
-  when: manual
+deploy:
+  stage: deploy
+  image: google/cloud-sdk:slim
   script:
-    - terraform apply -auto-approve
+    - echo $AWS_ACCESS_KEY_ID
+    - echo $AWS_SECRET_ACCESS_KEY
+    - echo $ACR_PASSWORD | docker login $ACR_REGISTRY -u $ACR_USERNAME --password-stdin
+    - docker load < image.tar
+    - docker tag emmanuel-services:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
+    - docker push $ECR_REPO:$IMAGE_TAG
+    - docker tag emmanuel-services:$IMAGE_TAG $ACR_REGISTRY/$ACR_REPO:$IMAGE_TAG
+    - docker push $ACR_REGISTRY/$ACR_REPO:$IMAGE_TAG
+    - echo "$GCR_KEY" > key.json
+    - gcloud auth activate-service-account --key-file=key.json
+    - gcloud auth configure-docker
+    - docker tag emmanuel-services:$IMAGE_TAG gcr.io/$GCP_PROJECT_ID/$GCR_REPO:$IMAGE_TAG
+    - docker push gcr.io/$GCP_PROJECT_ID/$GCR_REPO:$IMAGE_TAG
+
