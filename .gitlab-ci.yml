@@ -1,0 +1,24 @@
+stages:
+  - validate
+  - plan
+  - apply
+
+variables:
+  TF_ROOT: "."
+
+validate:
+  stage: validate
+  script:
+    - terraform init
+    - terraform validate
+
+plan:
+  stage: plan
+  script:
+    - terraform plan
+
+apply:
+  stage: apply
+  when: manual
+  script:
+    - terraform apply -auto-approve
