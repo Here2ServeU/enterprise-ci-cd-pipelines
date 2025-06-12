@@ -159,6 +159,63 @@ Then your pipelines push to:
 
 ---
 
+## Cleanup Guide
+
+### 1. Stop and Remove Docker Containers
+
+```bash
+docker stop emmanuel-services || true
+docker rm emmanuel-services || true
+docker rmi emmanuel-services || true
+```
+
+---
+
+### 2. Remove Python Virtual Environment
+
+```bash
+rm -rf .venv
+```
+
+---
+
+### 3. Delete Terraform State
+
+```bash
+cd terraform
+terraform destroy
+rm -rf .terraform terraform.tfstate* *.backup
+```
+
+---
+
+### 4. Remove Scan Reports and Logs
+
+```bash
+rm -f *.json *.sarif *.csv *.txt *.md *.png
+```
+
+---
+
+### 5. Reset Git Index (if needed)
+
+```bash
+rm -f .git/index
+git reset
+```
+
+---
+
+## Use Cases
+
+- Learn DevOps from scratch
+- Prep for DevSecOps interviews
+- Build real-world delivery pipelines
+- Teach DevOps to students or teams
+
+
+---
+
 ## Author
 
 **By Emmanuel Naweji, 2025**  
