@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 from datetime import datetime
 import pandas as pd
-import os
 
-# Simulated scan results (replace with actual tool outputs if needed)
+# Simulated scan results
 scan_summary = {
     "Checkov": {"Critical": 3, "High": 4, "Medium": 3, "Low": 2},
     "Trivy": {"Critical": 5, "High": 10, "Medium": 7, "Low": 4},
@@ -18,34 +17,38 @@ recommendations = {
     "AI Best Practices": "Enable CI/CD policies. Train developers. Use automation to enforce secure coding standards."
 }
 
-# Step 1: Generate Markdown Report
+# Step 1: Generate Summary CSV Report
+summary_rows = []
 today = datetime.now().strftime("%Y-%m-%d")
-with open("ai-security-analysis.md", "w") as f:
-    f.write(f"# AI-Powered DevSecOps Summary Report\n\n")
-    f.write(f"**Scan Date:** {today}  \n**Pipeline Trigger:** GitHub Actions  \n**Environment:** Multi-Cloud Infrastructure\n\n")
-    f.write("## Findings Summary\n\n")
-    f.write("| Tool | Total | Critical | High | Medium | Low |\n")
-    f.write("|------|-------|----------|------|--------|-----|\n")
-    for tool, levels in scan_summary.items():
-        total = sum(levels.values())
-        f.write(f"| {tool} | {total} | {levels['Critical']} | {levels['High']} | {levels['Medium']} | {levels['Low']} |\n")
-    f.write("\n## AI Recommendations\n")
-    for tool, rec in recommendations.items():
-        f.write(f"\n**{tool}:** {rec}")
+for tool, levels in scan_summary.items():
+    total = sum(levels.values())
+    summary_rows.append({
+        "Tool": tool,
+        "Date": today,
+        "Total Issues": total,
+        "Critical": levels["Critical"],
+        "High": levels["High"],
+        "Medium": levels["Medium"],
+        "Low": levels["Low"]
+    })
 
-# Step 2: Generate CSV with Recommendations
-rows = []
+summary_df = pd.DataFrame(summary_rows)
+summary_df.to_csv("ai-security-analysis.csv", index=False)
+
+# Step 2: Generate Detailed Recommendations CSV
+detailed_rows = []
 for tool, levels in scan_summary.items():
     for severity, count in levels.items():
         if count > 0:
-            rows.append({
+            detailed_rows.append({
                 "Tool": tool,
                 "Severity": severity,
                 "Count": count,
                 "Recommendation": recommendations[tool]
             })
-df = pd.DataFrame(rows)
-df.to_csv("devsecops_recommendations.csv", index=False)
+
+recommendations_df = pd.DataFrame(detailed_rows)
+recommendations_df.to_csv("devsecops_recommendations.csv", index=False)
 
 # Step 3: Generate Chart
 categories = list(scan_summary.keys())
@@ -71,4 +74,5 @@ ax.legend()
 
 plt.tight_layout()
 plt.savefig("devsecops_scan_results.png")
-print(" Markdown, CSV, and Chart generated successfully.")
+
+print("CSV Summary, Recommendations, and Chart generated successfully.")

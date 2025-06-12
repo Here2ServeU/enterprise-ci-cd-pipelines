@@ -1,0 +1,16 @@
+Tool,Severity,Count,Recommendation
+Checkov,Critical,3,Review Terraform configurations. Use strict IAM policies. Implement resource tagging and security groups.
+Checkov,High,4,Review Terraform configurations. Use strict IAM policies. Implement resource tagging and security groups.
+Checkov,Medium,3,Review Terraform configurations. Use strict IAM policies. Implement resource tagging and security groups.
+Checkov,Low,2,Review Terraform configurations. Use strict IAM policies. Implement resource tagging and security groups.
+Trivy,Critical,5,Update base images. Apply patches to vulnerable libraries. Use minimal OS layers.
+Trivy,High,10,Update base images. Apply patches to vulnerable libraries. Use minimal OS layers.
+Trivy,Medium,7,Update base images. Apply patches to vulnerable libraries. Use minimal OS layers.
+Trivy,Low,4,Update base images. Apply patches to vulnerable libraries. Use minimal OS layers.
+Gitleaks,Critical,1,Remove secrets from code. Rotate compromised credentials. Use secret managers like AWS Secrets Manager.
+Gitleaks,High,1,Remove secrets from code. Rotate compromised credentials. Use secret managers like AWS Secrets Manager.
+Gitleaks,Medium,1,Remove secrets from code. Rotate compromised credentials. Use secret managers like AWS Secrets Manager.
+AI Best Practices,Critical,2,Enable CI/CD policies. Train developers. Use automation to enforce secure coding standards.
+AI Best Practices,High,1,Enable CI/CD policies. Train developers. Use automation to enforce secure coding standards.
+AI Best Practices,Medium,1,Enable CI/CD policies. Train developers. Use automation to enforce secure coding standards.
+AI Best Practices,Low,1,Enable CI/CD policies. Train developers. Use automation to enforce secure coding standards.
