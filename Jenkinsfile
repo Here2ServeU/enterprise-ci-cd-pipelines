@@ -1,21 +1,15 @@
 pipeline {
-  agent any
-  stages {
-    stage('Init') {
-      steps {
-        sh 'terraform init'
-      }
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'docker build -t emmanuel-services:latest .'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+            }
+        }
     }
-    stage('Plan') {
-      steps {
-        sh 'terraform plan'
-      }
-    }
-    stage('Apply') {
-      steps {
-        input "Deploy to production?"
-        sh 'terraform apply -auto-approve'
-      }
-    }
-  }
 }

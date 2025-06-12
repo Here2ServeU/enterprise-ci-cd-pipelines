@@ -1,2 +1,2 @@
 #!/bin/bash
-trivy fs --severity HIGH,CRITICAL .
+docker run --rm -v $(pwd):/project aquasec/trivy:latest fs /project
